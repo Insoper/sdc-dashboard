@@ -17,7 +17,7 @@ main{max-width:1440px;margin:auto;padding:22px clamp(12px,3vw,36px) 40px}
 .field{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1}label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 select,input[type=file]{width:100%;border:1px solid #d5dce6;border-radius:8px;padding:10px;background:#fff;color:var(--ink);min-height:40px}
 .upload{max-width:280px}#refreshBtn{padding:9px 14px;border:1px solid var(--line,#ccc);border-radius:8px;background:#fff;cursor:pointer;font-weight:600}#refreshBtn:hover{background:#f2f4f7}.hint{font-size:11px;color:var(--muted);max-width:260px}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:16px}
 .kpi{padding:16px}.kpi .label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase}.kpi .value{font-size:27px;font-weight:750;margin-top:4px;color:var(--navy)}.kpi .sub{font-size:11px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:15px;margin-bottom:15px}
 .panel{padding:17px;min-width:0}.panel h2{font-size:15px;margin:0 0 13px;color:var(--navy)}
@@ -29,8 +29,8 @@ table{border-collapse:collapse;width:100%;font-size:12px}th{text-align:left;back
 .bars{display:grid;gap:12px}.barrow{display:grid;grid-template-columns:minmax(120px,1.2fr) 2fr 48px;gap:10px;align-items:center;font-size:12px}.track{height:9px;background:#edf1f5;border-radius:10px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--navy2),#4b75a5);border-radius:10px}
 .empty{padding:25px;text-align:center;color:var(--muted)}.status{font-size:11px;color:var(--green);font-weight:700}.error{color:#b42332}
 footer{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
-@media(max-width:850px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
-@media(max-width:480px){.kpis{grid-template-columns:1fr 1fr}.kpi{padding:12px}.kpi .value{font-size:22px}.barrow{grid-template-columns:110px 1fr 38px}}
+@media(max-width:850px){.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
+@media(max-width:480px){.kpis{grid-template-columns:repeat(3,1fr);gap:8px}.kpi{padding:10px}.kpi .value{font-size:20px}.kpi .sub{display:none}.barrow{grid-template-columns:110px 1fr 38px}}
 </style></head>
 <body>
 <header><div class="top"><div><h1>SCANIA DRIVER COMPETITION 2026</h1><p>Monthly Driver Performance Dashboard</p></div><div class="tag">SAFETY · PRODUCTIVITY · FUEL EFFICIENCY</div></div></header>
@@ -47,7 +47,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
 <section class="kpis">
  <div class="kpi"><div class="label">Peserta</div><div class="value" id="kParticipants">—</div><div class="sub">Dalam filter aktif</div></div>
  <div class="kpi"><div class="label">Perusahaan</div><div class="value" id="kCompanies">—</div><div class="sub">Dalam filter aktif</div></div>
- <div class="kpi"><div class="label">Rata-rata Fuel Ratio</div><div class="value" id="kFuel">—</div><div class="sub">km/liter</div></div>
  <div class="kpi"><div class="label">Rata-rata Final Score</div><div class="value" id="kScore">—</div><div class="sub" id="kScoreSub">Weighted ranking score · lebih kecil lebih baik; seri diuji ulang</div></div>
 </section>
 <section class="grid">
@@ -176,9 +175,7 @@ function render(){
  const companies=new Set(rows.map(r=>r.company));
  $('kParticipants').textContent=rows.length;
  $('kCompanies').textContent=companies.size;
- const fuels=rows.map(r=>n(r.fuel)).filter(v=>v!==null);
  const scores=rows.map(r=>r.score).filter(v=>v!==null);
- $('kFuel').textContent=fuels.length?fmt(fuels.reduce((a,b)=>a+b,0)/fuels.length,2):'—';
  $('kScore').textContent=scores.length?fmt(scores.reduce((a,b)=>a+b,0)/scores.length,2):'—';
  $('kScoreSub').textContent=p==='ALL'?'Total weighted score seluruh periode · terendah menang':'Weighted ranking score · lebih kecil lebih baik; seri diuji ulang';
  $('thScore').textContent=p==='ALL'?'Total Weighted Score':'Weighted Score';
@@ -200,7 +197,7 @@ function parseDate(v){if(v instanceof Date)return v.toISOString().slice(0,10);if
    Contoh: https://docs.google.com/spreadsheets/d/e/XXXXXXXX/pub?gid=0&single=true&output=csv */
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTUsw-ujYRyCe_SvzU3ijnapi4luvEzZVLubt3hYIDyqQv-S-_D1uVMzeC-45ZoHQpzOrk4nUrJP_Nc/pub?gid=1571329784&single=true&output=csv';
 const AUTO_REFRESH_MIN = 5;
-const LEADERBOARD_LIMIT = 3; // jumlah peserta di leaderboard
+const LEADERBOARD_LIMIT = 5; // jumlah peserta di leaderboard
 
 function parseRows(arr){
  const header=arr[3];if(!header)throw new Error('Header tidak ditemukan di baris ke-4.');
