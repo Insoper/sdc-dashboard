@@ -51,7 +51,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
  <div class="kpi"><div class="label">Rata-rata Final Score</div><div class="value" id="kScore">—</div><div class="sub" id="kScoreSub">Weighted ranking score · lebih kecil lebih baik; seri diuji ulang</div></div>
 </section>
 <section class="grid">
- <div class="panel"><div class="panelhead"><h2>Leaderboard — Top 10</h2><span class="small" id="groupLabel"></span></div>
+ <div class="panel"><div class="panelhead"><h2>Leaderboard — Top <span id="topN">5</span></h2><span class="small" id="groupLabel"></span></div>
  <div class="scroll"><table><thead><tr><th>Rank</th><th>Nama Peserta</th><th>Final Score</th><th>Fuel Ratio</th><th>Harsh Brake</th><th>Harsh Accel.</th></tr></thead><tbody id="leaderboard"></tbody></table></div></div>
  <div class="panel"><h2>Ringkasan 6 Parameter</h2><div class="small" style="margin:-7px 0 15px">Rata-rata nilai pada kelompok terpilih</div><div class="bars" id="parameterBars"></div></div>
 </section>
@@ -167,6 +167,7 @@ function rankRows(rows){
 function fmt(v,d=2){return v===null||v===undefined?'—':Number(v).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function medal(rank){return `<span class="medal ${rank===1?'first':rank===2?'second':rank===3?'third':''}">${rank??'—'}</span>`}
 function render(){
+ $('topN').textContent=LEADERBOARD_LIMIT;
  let rows=rankRows(allData.map(x=>({...x})));
  const p=$('period').value,c=$('category').value,co=$('company').value;
  rows=rows.filter(r=>(p==='ALL'||r.period===p)&&r.category===c&&r.company===co);
@@ -183,7 +184,7 @@ function render(){
  $('thScore').textContent=p==='ALL'?'Total Weighted Score':'Weighted Score';
  $('groupLabel').textContent=[p==='ALL'?'Semua periode (rata-rata parameter)':p,c==='ALL'?'Semua kategori':c,co==='ALL'?'Semua perusahaan':co].join(' · ');
  $('countLabel').textContent=`${rows.length} peserta`;
- $('leaderboard').innerHTML=rows.slice(0,10).map(r=>`<tr><td>${medal(r.finalRank)}</td><td><b>${esc(r.name)}</b><div class="small">${esc(r.company)} · ${esc(r.category)}</div></td><td class="score">${fmt(r.score,2)}</td><td>${fmt(n(r.fuel))}</td><td>${fmt(n(r.brakeRate))}</td><td>${fmt(n(r.accelRate))}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Tidak ada data untuk filter ini.</td></tr>';
+ $('leaderboard').innerHTML=rows.slice(0,LEADERBOARD_LIMIT).map(r=>`<tr><td>${medal(r.finalRank)}</td><td><b>${esc(r.name)}</b><div class="small">${esc(r.company)} · ${esc(r.category)}</div></td><td class="score">${fmt(r.score,2)}</td><td>${fmt(n(r.fuel))}</td><td>${fmt(n(r.brakeRate))}</td><td>${fmt(n(r.accelRate))}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Tidak ada data untuk filter ini.</td></tr>';
  $('detail').innerHTML=rows.map(r=>`<tr><td class="rank">${r.finalRank??'—'}</td><td><b>${esc(r.name)}</b><div class="small">ID ${esc(r.participantId)}${r.months?' · '+r.months+' bulan':''}</div></td><td>${esc(r.company)}</td><td>${esc(r.category)}</td><td>${fmt(n(r.theory))}</td><td>${fmt(n(r.grade))}</td><td>${fmt(n(r.support))}</td><td>${fmt(n(r.fuel))}</td><td>${r.fuelDelta==null?'—':(r.fuelDelta>0?'+':'')+fmt(r.fuelDelta)}</td><td>${fmt(n(r.brakeRate))}</td><td>${fmt(n(r.accelRate))}</td><td class="score">${fmt(r.score)}</td><td>${r.tieBreakScore===null?'—':fmt(r.tieBreakScore)}</td></tr>`).join('')||'<tr><td colspan="13" class="empty">Tidak ada data.</td></tr>';
  $('parameterBars').innerHTML=metrics.map((m,i)=>{
   let vals=rows.map(r=>n(r[m.key])).filter(v=>v!==null);
@@ -199,6 +200,7 @@ function parseDate(v){if(v instanceof Date)return v.toISOString().slice(0,10);if
    Contoh: https://docs.google.com/spreadsheets/d/e/XXXXXXXX/pub?gid=0&single=true&output=csv */
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQC7Ul6n9jL1HXpatKnwvrCDPSK7pQ2p3RcutgLMHH96QsLG5ofU_iId9GCKBATNw/pub?gid=1571329784&single=true&output=csv';
 const AUTO_REFRESH_MIN = 5;
+const LEADERBOARD_LIMIT = 5; // jumlah peserta di leaderboard
 
 function parseRows(arr){
  const header=arr[3];if(!header)throw new Error('Header tidak ditemukan di baris ke-4.');
