@@ -47,7 +47,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
 <section class="kpis">
  <div class="kpi"><div class="label">Peserta</div><div class="value" id="kParticipants">—</div><div class="sub">Dalam filter aktif</div></div>
  <div class="kpi"><div class="label">Perusahaan</div><div class="value" id="kCompanies">—</div><div class="sub">Dalam filter aktif</div></div>
- <div class="kpi"><div class="label">Rata-rata Final Score</div><div class="value" id="kScore">—</div><div class="sub" id="kScoreSub">Weighted ranking score · lebih kecil lebih baik; seri diuji ulang</div></div>
+ <div class="kpi"><div class="label">Rata-rata Final Score</div><div class="value" id="kScore">—</div><div class="sub" id="kScoreSub">Weighted point score · lebih besar lebih baik; seri diuji ulang</div></div>
 </section>
 <section class="grid">
  <div class="panel"><div class="panelhead"><h2>Leaderboard — Top <span id="topN">5</span></h2><span class="small" id="groupLabel"></span></div>
@@ -101,7 +101,7 @@ function aggregate(rows){
   out.push(a);
  }
  const keyOf=r=>`${r.score.toFixed(8)}|${(r.tieBreakScore||0).toFixed(8)}`;
- const ks=[...new Set(out.filter(r=>r.score!==null).map(keyOf))].sort((x,y)=>{const[xs,xt]=x.split('|').map(Number),[ys,yt]=y.split('|').map(Number);return xs-ys||xt-yt});
+ const ks=[...new Set(out.filter(r=>r.score!==null).map(keyOf))].sort((x,y)=>{const[xs,xt]=x.split('|').map(Number),[ys,yt]=y.split('|').map(Number);return ys-xs||yt-xt});
  out.forEach(r=>{r.finalRank=r.score===null?null:ks.indexOf(keyOf(r))+1});
  return out;
 }
@@ -114,21 +114,29 @@ function rankRows(rows){
  }
  const groupMap=new Map();
  rows.forEach(r=>{let key=[r.period,r.customerId,r.category].join('|');if(!groupMap.has(key))groupMap.set(key,[]);groupMap.get(key).push(r)});
- // Calculate weighted score using the normal ranking pool (same company, period and category).
- for(const group of groupMap.values()){
-  rankMetrics.forEach(m=>{
-   const valid=group.filter(r=>n(r[m.key])!==null);
-   // Dense ranking: tied values share a rank and the next distinct value gets the next rank.
-   const distinct=[...new Set(valid.map(r=>n(r[m.key])))].sort((a,b)=>m.high?b-a:a-b);
-   valid.forEach(r=>{r['rank_'+m.key]=distinct.indexOf(n(r[m.key]))+1;});
+ // Poin per parameter: rangking 1 = N poin, rangking 2 = N-1, dst (N = jumlah peserta di grup).
+ // Rangking DENSE: nilai sama = rangking sama = poin sama, dan nilai berikutnya lanjut ke rangking berikutnya (tanpa lompat).
+ // Contoh: 21 peserta, ada 2 peserta rangking 2 -> keduanya 20 poin, peserta terakhir dapat 2 poin (bukan 1).
+ // Poin dikali bobot, lalu dijumlah: SEMAKIN BESAR SEMAKIN BAIK.
+ const assignPoints=(pool,m,N,prefix)=>{
+  const valid=pool.filter(r=>n(r[m.key])!==null);
+  const distinct=[...new Set(valid.map(r=>n(r[m.key])))].sort((a,b)=>m.high?b-a:a-b);
+  valid.forEach(r=>{
+   const denseRank=distinct.indexOf(n(r[m.key]))+1;
+   r[prefix+m.key]=N-denseRank+1;
   });
+ };
+ const weighted=(r,prefix)=>rankMetrics.reduce((sum,m,i)=>sum+(r[prefix+m.key]!==undefined?r[prefix+m.key]*weights[i]:0),0);
+ const complete=(r,prefix)=>rankMetrics.filter(m=>!m.optional).every(m=>r[prefix+m.key]!==undefined);
+ for(const group of groupMap.values()){
+  const N=group.length;
+  rankMetrics.forEach(m=>assignPoints(group,m,N,'pts_'));
   group.forEach(r=>{
-   const ok=rankMetrics.filter(m=>!m.optional).every(m=>r['rank_'+m.key]!==undefined);
-   r.score=ok?rankMetrics.reduce((sum,m,i)=>sum+(r['rank_'+m.key]!==undefined?r['rank_'+m.key]*weights[i]:0),0):null;
+   r.score=complete(r,'pts_')?weighted(r,'pts_'):null;
    r.tieBreakScore=null;
   });
 
-  // Tie-break: only participants with the exact same primary weighted score compete again.
+  // Tie-break: hanya peserta dengan skor utama yang persis sama yang dihitung ulang (poin dihitung di antara mereka saja).
   const tiedPools=new Map();
   group.filter(r=>r.score!==null).forEach(r=>{
    const key=Number(r.score).toFixed(8);
@@ -137,29 +145,17 @@ function rankRows(rows){
   });
   for(const tied of tiedPools.values()){
    if(tied.length<2)continue;
-   rankMetrics.forEach(m=>{
-    const valid=tied.filter(r=>n(r[m.key])!==null);
-    const distinct=[...new Set(valid.map(r=>n(r[m.key])))].sort((a,b)=>m.high?b-a:a-b);
-    valid.forEach(r=>{r['tie_rank_'+m.key]=distinct.indexOf(n(r[m.key]))+1;});
-   });
-   tied.forEach(r=>{
-    const ok=rankMetrics.filter(m=>!m.optional).every(m=>r['tie_rank_'+m.key]!==undefined);
-    r.tieBreakScore=ok?rankMetrics.reduce((sum,m,i)=>sum+(r['tie_rank_'+m.key]!==undefined?r['tie_rank_'+m.key]*weights[i]:0),0):null;
-   });
+   rankMetrics.forEach(m=>assignPoints(tied,m,tied.length,'tie_pts_'));
+   tied.forEach(r=>{r.tieBreakScore=complete(r,'tie_pts_')?weighted(r,'tie_pts_'):null;});
   }
 
-  // Dense final rank on (primary score, tie-break score). If still equal, participants share rank.
-  const rankKeys=[...new Set(group.filter(r=>r.score!==null).map(r=>
-   `${Number(r.score).toFixed(8)}|${r.tieBreakScore===null?'0':Number(r.tieBreakScore).toFixed(8)}`
-  ))].sort((a,b)=>{
+  // Rangking akhir (dense): skor tertinggi = rangking 1; seri diurutkan dengan tie-break tertinggi.
+  const keyOf=r=>`${Number(r.score).toFixed(8)}|${r.tieBreakScore===null?'0':Number(r.tieBreakScore).toFixed(8)}`;
+  const rankKeys=[...new Set(group.filter(r=>r.score!==null).map(keyOf))].sort((a,b)=>{
    const [as,at]=a.split('|').map(Number),[bs,bt]=b.split('|').map(Number);
-   return as-bs || at-bt;
+   return bs-as || bt-at;
   });
-  group.forEach(r=>{
-   if(r.score===null){r.finalRank=null;return;}
-   const key=`${Number(r.score).toFixed(8)}|${r.tieBreakScore===null?'0':Number(r.tieBreakScore).toFixed(8)}`;
-   r.finalRank=rankKeys.indexOf(key)+1;
-  });
+  group.forEach(r=>{r.finalRank=r.score===null?null:rankKeys.indexOf(keyOf(r))+1;});
  }
  return rows;
 }
@@ -177,7 +173,7 @@ function render(){
  $('kCompanies').textContent=companies.size;
  const scores=rows.map(r=>r.score).filter(v=>v!==null);
  $('kScore').textContent=scores.length?fmt(scores.reduce((a,b)=>a+b,0)/scores.length,2):'—';
- $('kScoreSub').textContent=p==='ALL'?'Total weighted score seluruh periode · terendah menang':'Weighted ranking score · lebih kecil lebih baik; seri diuji ulang';
+ $('kScoreSub').textContent=p==='ALL'?'Total weighted score seluruh periode · tertinggi menang':'Weighted point score · lebih besar lebih baik; seri diuji ulang';
  $('thScore').textContent=p==='ALL'?'Total Weighted Score':'Weighted Score';
  $('groupLabel').textContent=[p==='ALL'?'Semua periode (rata-rata parameter)':p,c==='ALL'?'Semua kategori':c,co==='ALL'?'Semua perusahaan':co].join(' · ');
  $('countLabel').textContent=`${rows.length} peserta`;
