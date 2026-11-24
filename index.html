@@ -11,6 +11,17 @@ header{background:linear-gradient(115deg,var(--navy),#1d3557);color:#fff;padding
 header .top{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
 h1{font-size:clamp(20px,3vw,30px);margin:0;letter-spacing:.5px}header p{margin:5px 0 0;color:#d9e3f0}
 .tag{border:1px solid #ffffff55;border-radius:20px;padding:7px 12px;font-size:11px;letter-spacing:1px}
+/* === Logo, banner, contact person === */
+.headleft{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:16px;background:#fff;padding:9px 16px;border-radius:10px}
+.brand img{height:42px;width:auto;max-width:130px;object-fit:contain;display:block}
+.brand .sep{width:1px;height:30px;background:var(--line)}
+.headright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.cp{font-size:12px;color:#d9e3f0}.cp b{color:#fff;font-weight:700}
+.banner{position:relative;display:grid;grid-template-columns:1fr 1fr;height:clamp(150px,22vw,260px);background:var(--navy);overflow:hidden}
+.banner img{width:100%;height:100%;object-fit:cover;display:block}
+.banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#14274400 45%,#142744b3 100%);pointer-events:none}
+.banner.single{grid-template-columns:1fr}
 main{max-width:1440px;margin:auto;padding:22px clamp(12px,3vw,36px) 40px}
 .toolbar,.panel,.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 3px 12px #172b4608}
 .toolbar{padding:15px;display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
@@ -29,11 +40,29 @@ table{border-collapse:collapse;width:100%;font-size:12px}th{text-align:left;back
 .bars{display:grid;gap:12px}.barrow{display:grid;grid-template-columns:minmax(120px,1.2fr) 2fr 48px;gap:10px;align-items:center;font-size:12px}.track{height:9px;background:#edf1f5;border-radius:10px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--navy2),#4b75a5);border-radius:10px}
 .empty{padding:25px;text-align:center;color:var(--muted)}.status{font-size:11px;color:var(--green);font-weight:700}.error{color:#b42332}
 footer{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
-@media(max-width:850px){.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
-@media(max-width:480px){.kpis{grid-template-columns:repeat(3,1fr);gap:8px}.kpi{padding:10px}.kpi .value{font-size:20px}.kpi .sub{display:none}.barrow{grid-template-columns:110px 1fr 38px}}
+footer .cpfoot{margin-top:8px;font-size:12px;color:var(--ink)}
+@media(max-width:850px){.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}.headright{align-items:flex-start}}
+@media(max-width:480px){.kpis{grid-template-columns:repeat(3,1fr);gap:8px}.kpi{padding:10px}.kpi .value{font-size:20px}.kpi .sub{display:none}.barrow{grid-template-columns:110px 1fr 38px}.brand img{height:32px;max-width:100px}.banner{height:130px}}
 </style></head>
 <body>
-<header><div class="top"><div><h1>SCANIA DRIVER COMPETITION 2026</h1><p>Monthly Driver Performance Dashboard</p></div><div class="tag">SAFETY · PRODUCTIVITY · FUEL EFFICIENCY</div></div></header>
+<header><div class="top">
+ <div class="headleft">
+  <div class="brand">
+   <img src="assets/logo-ut.png" alt="United Tractors" onerror="this.style.display='none'">
+   <span class="sep"></span>
+   <img src="assets/logo-scania.png" alt="Scania" onerror="this.style.display='none'">
+  </div>
+  <div><h1>SCANIA DRIVER COMPETITION 2026</h1><p>Monthly Driver Performance Dashboard</p></div>
+ </div>
+ <div class="headright">
+  <div class="tag">SAFETY · PRODUCTIVITY · FUEL EFFICIENCY</div>
+  <div class="cp">Contact Person: <b>Mushowwir Zam</b></div>
+ </div>
+</div></header>
+<div class="banner">
+ <img src="assets/scania-truck.jpg" alt="Scania Truck" onerror="this.remove();document.querySelector('.banner').classList.add('single')">
+ <img src="assets/scania-bus.jpg" alt="Scania Bus" onerror="this.remove();document.querySelector('.banner').classList.add('single')">
+</div>
 <main>
 <section class="toolbar">
  <div class="field"><label for="period">Periode</label><select id="period"></select></div>
@@ -56,7 +85,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
 </section>
 <section class="panel"><div class="panelhead"><h2>Detail Ranking Peserta</h2><span class="small" id="countLabel"></span></div>
 <div class="scroll"><table><thead><tr><th>Rank</th><th>Peserta</th><th>Perusahaan</th><th>Kategori</th><th>Theory</th><th>Overall Grade</th><th>SDS</th><th>Fuel</th><th>Δ Fuel</th><th>Brake/100 km</th><th>Accel/100 km</th><th id="thScore">Weighted Score</th><th>Tie-break Score</th></tr></thead><tbody id="detail"></tbody></table></div></section>
-<footer>Scania Driver Competition 2026 · Bobot: Theory 20% (hanya bulan pertama & Semua Periode) · Overall Grade 15% · SDS 15% · Fuel (Δ km/l) 20% · Harsh Brake 15% · Harsh Acceleration 15%</footer>
+<footer>Scania Driver Competition 2026 · Bobot: Theory 20% (hanya bulan pertama & Semua Periode) · Overall Grade 15% · SDS 15% · Fuel (Δ km/l) 20% · Harsh Brake 15% · Harsh Acceleration 15%
+<div class="cpfoot">Contact Person: <b>Mushowwir Zam</b></div></footer>
 </main>
 <script>
 const initialData = [{"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "1", "name": "ANTON PAJARUDIN 9853", "theory": 76.0, "grade": 3.45, "support": 91.0, "fuel": 2.87, "distance": 100.0, "brakeEvents": 0.2, "brakeRate": 0.2, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "2", "name": "BAMBANG TRENGGONO 8961", "theory": 77.0, "grade": 3.9, "support": 80.0, "fuel": 3.5, "distance": 100.0, "brakeEvents": 0.0, "brakeRate": 0.0, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "3", "name": "DEDI WAHYUDIN 10625", "theory": 78.0, "grade": 3.83, "support": 93.0, "fuel": 3.13, "distance": 100.0, "brakeEvents": 0.4, "brakeRate": 0.4, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "4", "name": "ENDRO MARTONO 4379", "theory": 79.0, "grade": 3.37, "support": 75.0, "fuel": 3.29, "distance": 100.0, "brakeEvents": 0.2, "brakeRate": 0.2, "accelEvents": 0.1, "accelRate": 0.1, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "5", "name": "IWAN SETIAWAN 10202", "theory": 80.0, "grade": 3.24, "support": 73.0, "fuel": 2.85, "distance": 100.0, "brakeEvents": 0.0, "brakeRate": 0.0, "accelEvents": 0.2, "accelRate": 0.2, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "6", "name": "JUNIAR ARGO ADI LAKSONO 10596", "theory": 81.0, "grade": 3.31, "support": 77.0, "fuel": 3.09, "distance": 100.0, "brakeEvents": 0.1, "brakeRate": 0.1, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "7", "name": "MAKMURI 9870", "theory": 82.0, "grade": 3.7, "support": 73.0, "fuel": 2.95, "distance": 100.0, "brakeEvents": 0.1, "brakeRate": 0.1, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "8", "name": "NUR JOKO SANTOSO 10782", "theory": 83.0, "grade": 3.28, "support": 87.0, "fuel": 2.76, "distance": 100.0, "brakeEvents": 0.1, "brakeRate": 0.1, "accelEvents": 0.1, "accelRate": 0.1, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "9", "name": "PRIYATNO 554675", "theory": 84.0, "grade": 3.04, "support": 75.0, "fuel": 2.84, "distance": 100.0, "brakeEvents": 0.5, "brakeRate": 0.5, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "10", "name": "RISTIYANTO 10224", "theory": 85.0, "grade": 3.37, "support": 84.0, "fuel": 3.25, "distance": 100.0, "brakeEvents": 0.2, "brakeRate": 0.2, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "11", "name": "SARWONO C 8451", "theory": 86.0, "grade": 3.03, "support": 68.0, "fuel": 3.12, "distance": 100.0, "brakeEvents": 0.2, "brakeRate": 0.2, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "12", "name": "SLAMET Y 4951", "theory": 87.0, "grade": 3.79, "support": 84.0, "fuel": 3.02, "distance": 100.0, "brakeEvents": 0.1, "brakeRate": 0.1, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "13", "name": "SUBANDRIYO 3085", "theory": 88.0, "grade": 3.34, "support": 73.0, "fuel": 3.64, "distance": 100.0, "brakeEvents": 0.3, "brakeRate": 0.3, "accelEvents": 0.1, "accelRate": 0.1, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "14", "name": "SUPARYO 10520", "theory": 89.0, "grade": 3.03, "support": 68.0, "fuel": 2.53, "distance": 100.0, "brakeEvents": 0.4, "brakeRate": 0.4, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "15", "name": "SUPRI HANDAYANTO 9679", "theory": 90.0, "grade": 3.37, "support": 90.0, "fuel": 3.08, "distance": 100.0, "brakeEvents": 0.2, "brakeRate": 0.2, "accelEvents": 0.0, "accelRate": 0.0, "source": "Manual Assessment", "notes": ""}, {"date": "2026-12-01", "period": "DESEMBER", "customerId": "1111", "company": "PT AAA", "category": "Bus", "participantId": "16", "name": "SURANTO 10636", "theory": 91.0, "grade": 3.5, "support": 89.0, "fuel": 2.55, "distance": 100.0, "brakeEvents": 0.0, "brakeRate": 0.0, "accelEvents": 0.1, "accelRate": 0.1, "source": "Manual Assessment", "notes": ""}];
